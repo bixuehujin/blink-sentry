@@ -1,0 +1,27 @@
+{
+    "name" : "blink/sentry",
+    "description": "Brings Sentry into Blink Framework for error reporting",
+    "keywords": ["blink", "sentry", "error reporting"],
+    "license":"MIT",
+    "authors" : [
+        {
+            "name" : "Jin Hu",
+            "email": "bixuehujin@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "blink/blink": "0.1.*",
+        "raven/raven": "0.11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "blink\\sentry": "src"
+        }
+    },
+    "minimum-stability": "stable",
+    "config": {
+        "vendor-dir": "vendor",
+        "preferred-install": "dist"
+    }
+}
