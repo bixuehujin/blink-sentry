@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "blink\\sentry": "src"
+            "blink\\sentry\\": "src"
         }
     },
     "minimum-stability": "stable",
