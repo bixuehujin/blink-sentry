@@ -44,13 +44,13 @@ class Sentry extends Object
         if (!$this->isEnabled()) {
             return null;
         }
-        //$this->processOptions($options);
+
         try {
             return  $this->_client->getIdent(
                 $this->_client->captureException($exception, $options, $logger, $context)
             );
         } catch (\Exception $e) {
-
+            logger()->error($e);
         }
     }
 
@@ -69,13 +69,13 @@ class Sentry extends Object
         if (!$this->isEnabled()) {
             return null;
         }
-        //$this->processOptions($options);
+
         try {
             return $this->_client->getIdent(
                 $this->_client->captureMessage($message, $params, $options, $stack, $context)
             );
         } catch (\Exception $e) {
-
+            logger()->error($e);
         }
     }
 
@@ -97,7 +97,7 @@ class Sentry extends Object
                 $this->_client->captureQuery($query, $level, $engine)
             );
         } catch (\Exception $e) {
-
+            logger()->error($e);
         }
     }
 
@@ -119,10 +119,6 @@ class Sentry extends Object
             $this->options
         );
 
-        try {
-            return new Client($this->dsn, $options);
-        } catch (\Exception $e) {
-
-        }
+        return new Client($this->dsn, $options);
     }
 }
