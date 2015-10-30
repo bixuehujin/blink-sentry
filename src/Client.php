@@ -2,6 +2,7 @@
 
 namespace blink\sentry;
 
+use blink\core\Application;
 use Raven_Client;
 
 /**
@@ -35,16 +36,62 @@ class Client extends Raven_Client
 
     protected function is_http_request()
     {
-        return false;
+        return version_compare(explode(' ', Application::VERSION)[0], '0.1.1') >= 0 && app()->currentRequest;
     }
 
     protected function get_http_data()
     {
-        return [];
+        $request = request();
+        $headers = [];
+
+        foreach ($request->headers as $name => $values) {
+            $name = str_replace(' ', '-', ucwords(str_replace('-', ' ', $name)));
+
+            $headers[$name] = count($values) == 1 ? reset($values) : $values;
+        }
+
+        $result = [
+            'method' => $request->method,
+            'url' => $request->url(true),
+            'query_string' => $request->queryString,
+        ];
+
+        if ($headers) {
+            $result['headers'] = $headers;
+        }
+
+        $body = $request->getBody();
+        if ($body->count()) {
+            $request['data'] = $body->all();
+        }
+
+        if ($_ENV) {
+            $result['env'] = $_ENV;
+        }
+
+        return [
+            'request' => $result,
+        ];
     }
 
     protected function get_user_data()
     {
-        return [];
+        $user = $this->context->user;
+
+        if ($user === null) {
+            $session = request()->session;
+            if (!$session->id) {
+                return [];
+            }
+
+            $user = [
+                'id' => $session->id,
+                'data' => $session->all(),
+            ];
+        }
+
+        return [
+            'user' => $user,
+        ];
     }
 }
