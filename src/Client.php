@@ -80,7 +80,7 @@ class Client extends Raven_Client
 
         if ($user === null) {
             $session = request()->session;
-            if ($session && !$session->id) {
+            if (!$session || !$session->id) {
                 return [];
             }
 
