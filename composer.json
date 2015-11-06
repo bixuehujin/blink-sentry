@@ -1,6 +1,6 @@
 {
     "name" : "blink/sentry",
-    "description": "Brings Sentry into Blink Framework for error reporting",
+    "description": "Sentry integration for Blink Framework",
     "keywords": ["blink", "sentry", "error reporting"],
     "license":"MIT",
     "authors" : [
