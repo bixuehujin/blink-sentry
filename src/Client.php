@@ -62,7 +62,7 @@ class Client extends Raven_Client
 
         $body = $request->getBody();
         if ($body->count()) {
-            $request['data'] = $body->all();
+            $result['data'] = $body->all();
         }
 
         if ($_ENV) {
