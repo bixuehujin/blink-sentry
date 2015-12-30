@@ -7,7 +7,7 @@ blink-sentry - Sentry integration for Blink Framework
 You can install the latest version of blink-sentry by using Composer:
 
 ```bash
-composer require blink/sentry:dev-master@dev
+composer require blink/sentry
 ```
 
 ## Configuration
