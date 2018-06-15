@@ -2,14 +2,14 @@
 
 namespace blink\sentry;
 
-use blink\core\Object;
+use blink\core\BaseObject;
 
 /**
  * Class Sentry
  *
  * @package blink\sentry
  */
-class Sentry extends Object
+class Sentry extends BaseObject
 {
     public $dsn;
     public $options = [];

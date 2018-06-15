@@ -53,14 +53,14 @@ class Client extends Raven_Client
         $result = [
             'method' => $request->method,
             'url' => $request->url(true),
-            'query_string' => $request->queryString,
+            'query_string' => $request->uri->getQuery(),
         ];
 
         if ($headers) {
             $result['headers'] = $headers;
         }
 
-        $body = $request->getBody();
+        $body = $request->getPayload();
         if ($body->count()) {
             $result['data'] = $body->all();
         }
