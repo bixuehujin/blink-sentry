@@ -46,11 +46,14 @@ class Sentry extends BaseObject
         }
 
         try {
-            return $this->_client->captureException($exception);
+            $id = $this->_client->captureException($exception);
         } catch (\Throwable $e) {
             logger()->error($e);
-            return null;
+        } finally {
+            $this->flush();;
         }
+        
+        return $id ?? null;
     }
 
     /**
@@ -68,11 +71,28 @@ class Sentry extends BaseObject
         }
 
         try {
-            return $this->_client->captureMessage($message);
+            $id = null;
+            $this->_client->withScope(function (Scope $scope) use ($context, $message, &$id) {
+                $scope->setExtras($context);
+                $id = $this->_client->captureMessage($message);
+            }); 
+            
         } catch (\Exception $e) {
             logger()->error($e);
-            return null;
+        } finally {
+            $this->flush();;
         }
+        
+        return $id; 
+    }
+    
+    protected function flush(): void
+    {
+        $sentry = $this->_client->getClient();
+        
+        assert($sentry instanceof \Sentry\Client);
+        
+        $sentry->flush();
     }
 
     protected function createClient()
