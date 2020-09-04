@@ -12,8 +12,7 @@
     "require": {
         "php": ">=5.5.0",
         "blink/blink": "*",
-        "sentry/sentry": "^2.4",
-        "php-http/curl-client": "^2.1"
+        "sentry/sdk": "^2.0"
     },
     "autoload": {
         "psr-4": {
