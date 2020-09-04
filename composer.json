@@ -12,7 +12,8 @@
     "require": {
         "php": ">=5.5.0",
         "blink/blink": "*",
-        "raven/raven": "0.13.*"
+        "sentry/sentry": "^2.4",
+        "php-http/curl-client": "^2.1"
     },
     "autoload": {
         "psr-4": {
