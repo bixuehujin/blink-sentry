@@ -3,6 +3,9 @@
 namespace blink\sentry;
 
 use blink\core\BaseObject;
+use Sentry\Severity;
+use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 
 /**
  * Class Sentry
@@ -16,7 +19,7 @@ class Sentry extends BaseObject
     public $environments = ['prod', 'staging'];
 
     /**
-     * @var Client
+     * @var HubInterface
      */
     private $_client;
 
@@ -33,77 +36,63 @@ class Sentry extends BaseObject
     /**
      * Log an exception to sentry.
      *
-     * @param $exception
-     * @param array $options
-     * @param string $logger
-     * @param null $context
-     * @return string
+     * @param \Throwable $exception
+     * @return string|null
      */
-    public function captureException($exception, $options = [], $logger = '', $context = null)
+    public function captureException(\Throwable $exception)
     {
         if (!$this->isEnabled()) {
             return null;
         }
 
         try {
-            return  $this->_client->getIdent(
-                $this->_client->captureException($exception, $options, $logger, $context)
-            );
-        } catch (\Exception $e) {
+            $id = $this->_client->captureException($exception);
+        } catch (\Throwable $e) {
             logger()->error($e);
+        } finally {
+            $this->flush();;
         }
+        
+        return $id ?? null;
     }
 
     /**
      * Log a message to sentry.
      *
-     * @param $message
-     * @param array $params
-     * @param array $options
-     * @param bool|false $stack
-     * @param null $context
-     * @return string
+     * @param string $message
+     * @param array $context
+     * @param Severity|null $level
+     * @return string|null
      */
-    public function captureMessage($message, $params = [], $options = [], $stack = false, $context = null)
+    public function captureMessage(string $message, array $context = [], ?Severity $level = null)
     {
         if (!$this->isEnabled()) {
             return null;
         }
 
         try {
-            return $this->_client->getIdent(
-                $this->_client->captureMessage($message, $params, $options, $stack, $context)
-            );
+            $id = null;
+            $this->_client->withScope(function (Scope $scope) use ($context, $message, &$id) {
+                $scope->setExtras($context);
+                $id = $this->_client->captureMessage($message);
+            }); 
+            
         } catch (\Exception $e) {
             logger()->error($e);
+        } finally {
+            $this->flush();;
         }
+        
+        return $id; 
     }
-
-    /**
-     * Log a query to sentry.
-     *
-     * @param $query
-     * @param string $level
-     * @param string $engine
-     * @return string
-     */
-    public function captureQuery($query, $level = Client::INFO, $engine = '')
+    
+    protected function flush(): void
     {
-        if (!$this->isEnabled()) {
-            return null;
-        }
-        try {
-            return $this->_client->getIdent(
-                $this->_client->captureQuery($query, $level, $engine)
-            );
-        } catch (\Exception $e) {
-            logger()->error($e);
-        }
-    }
-
-    public function flush()
-    {
-        $this->_client->sendUnsentErrors();
+        $sentry = $this->_client->getClient();
+        
+        assert($sentry instanceof \Sentry\Client);
+        
+        $sentry->flush();
     }
 
     protected function createClient()
@@ -119,6 +108,10 @@ class Sentry extends BaseObject
             $this->options
         );
 
-        return new Client($this->dsn, $options);
+        $options['dsn'] = $this->dsn;
+
+        \Sentry\init($options);
+
+        return \Sentry\SentrySdk::getCurrentHub();
     }
 }
