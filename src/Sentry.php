@@ -36,7 +36,6 @@ class Sentry extends BaseObject
 
     protected function isEnabled()
     {
-        return true;
         return in_array(app()->environment, $this->environments);
     }
 
