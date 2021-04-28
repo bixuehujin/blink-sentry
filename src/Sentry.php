@@ -2,7 +2,13 @@
 
 namespace blink\sentry;
 
+use Closure;
 use blink\core\BaseObject;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Sentry\Integration\FrameContextifierIntegration;
+use Sentry\Integration\RequestFetcherInterface;
+use Sentry\Integration\RequestIntegration;
 use Sentry\Severity;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -30,9 +36,19 @@ class Sentry extends BaseObject
 
     protected function isEnabled()
     {
+        return true;
         return in_array(app()->environment, $this->environments);
     }
 
+    protected function fetchRequest(): ?ServerRequestInterface
+    {
+        return null;
+    }
+
+    protected function configureScope(Scope $scope): void 
+    {
+    }
+    
     /**
      * Log an exception to sentry.
      *
@@ -46,7 +62,11 @@ class Sentry extends BaseObject
         }
 
         try {
-            $id = $this->_client->captureException($exception);
+            $id = null;
+            $this->_client->withScope(function (Scope $scope) use (&$id, $exception) {
+                $this->configureScope($scope);
+               $id = $this->_client->captureException($exception);
+            });
         } catch (\Throwable $e) {
             logger()->error($e);
         } finally {
@@ -74,6 +94,7 @@ class Sentry extends BaseObject
             $id = null;
             $this->_client->withScope(function (Scope $scope) use ($context, $message, &$id) {
                 $scope->setExtras($context);
+                $this->configureScope($scope);
                 $id = $this->_client->captureMessage($message);
             }); 
             
@@ -97,12 +118,28 @@ class Sentry extends BaseObject
 
     protected function createClient()
     {
+        $fetcher = fn() => $this->fetchRequest();
+        
         $options = array_merge_recursive(
             [
                 'logger' => 'blink',
                 'tags' => [
                     'environment' => app()->environment,
                     'php_version' => phpversion(),
+                ],
+                'integrations' => [
+                    new FrameContextifierIntegration(),
+                    new RequestIntegration(null, new class($fetcher) implements RequestFetcherInterface {
+                        protected Closure $fetcher;
+                        public function __construct(Closure $fetcher)
+                        {
+                            $this->fetcher = $fetcher;
+                        }
+                        public function fetchRequest(): ?ServerRequestInterface
+                        {
+                            return ($this->fetcher)();
+                        }
+                    }),
                 ],
             ],
             $this->options
