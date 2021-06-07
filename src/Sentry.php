@@ -120,7 +120,7 @@ class Sentry extends BaseObject
         return $this->currentTransaction; 
     }
     
-    public function setCurrentTransaction(Transaction $transaction): void 
+    public function setCurrentTransaction(?Transaction $transaction): void 
     {
         $this->currentTransaction = $transaction;
     }
