@@ -12,6 +12,8 @@ use Sentry\Integration\RequestIntegration;
 use Sentry\Severity;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Sentry\Tracing\Transaction;
+use Sentry\Tracing\TransactionContext;
 
 /**
  * Class Sentry
@@ -28,6 +30,8 @@ class Sentry extends BaseObject
      * @var HubInterface
      */
     private $_client;
+    /** @var Transaction|null */
+    private $currentTransaction;
 
     public function init()
     {
@@ -105,6 +109,21 @@ class Sentry extends BaseObject
         
         return $id; 
     }
+
+    public function startTransaction(TransactionContext $context, array $customSamplingContext = []): Transaction
+    {
+        return $this->_client->startTransaction($context, $customSamplingContext);
+    }
+    
+    public function currentTransaction(): ?Transaction 
+    {
+        return $this->currentTransaction; 
+    }
+    
+    public function setCurrentTransaction(Transaction $transaction): void 
+    {
+        $this->currentTransaction = $transaction;
+    }
     
     protected function flush(): void
     {
@@ -128,7 +147,7 @@ class Sentry extends BaseObject
                 ],
                 'integrations' => [
                     new FrameContextifierIntegration(),
-                    new RequestIntegration(null, new class($fetcher) implements RequestFetcherInterface {
+                    new RequestIntegration(new class($fetcher) implements RequestFetcherInterface {
                         protected Closure $fetcher;
                         public function __construct(Closure $fetcher)
                         {
