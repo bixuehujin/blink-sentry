@@ -50,8 +50,12 @@ class Sentry extends BaseObject
 
     protected function configureScope(Scope $scope): void 
     {
+        $scope->setTags([
+            'environment' => app()->environment,
+            'php_version' => phpversion(),
+        ]);
     }
-    
+
     /**
      * Log an exception to sentry.
      *
@@ -141,10 +145,6 @@ class Sentry extends BaseObject
         $options = array_merge_recursive(
             [
                 'logger' => 'blink',
-                'tags' => [
-                    'environment' => app()->environment,
-                    'php_version' => phpversion(),
-                ],
                 'integrations' => [
                     new FrameContextifierIntegration(),
                     new RequestIntegration(new class($fetcher) implements RequestFetcherInterface {
