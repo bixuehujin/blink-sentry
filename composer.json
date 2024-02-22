@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0",
+        "php": ">=8.1.0",
         "blink/blink": "*",
         "sentry/sdk": "^3.1"
     },

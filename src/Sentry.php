@@ -4,6 +4,7 @@ namespace blink\sentry;
 
 use Closure;
 use blink\core\BaseObject;
+use blink\di\Container;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sentry\Integration\FrameContextifierIntegration;
@@ -40,7 +41,9 @@ class Sentry extends BaseObject
 
     protected function isEnabled()
     {
-        return in_array(app()->environment, $this->environments);
+        $env = Container::$global->get('app.env');
+
+        return in_array($env, $this->environments);
     }
 
     protected function fetchRequest(): ?ServerRequestInterface
@@ -50,8 +53,10 @@ class Sentry extends BaseObject
 
     protected function configureScope(Scope $scope): void 
     {
+        $env = Container::$global->get('app.env');
+
         $scope->setTags([
-            'environment' => app()->environment,
+            'environment' => $env,
             'php_version' => phpversion(),
         ]);
     }
