@@ -133,7 +133,12 @@ class Sentry extends BaseObject
     {
         $this->currentTransaction = $transaction;
     }
-    
+   
+    public function hub(): HubInterface
+    {
+        return $this->_client;     
+    }
+
     protected function flush(): void
     {
         $sentry = $this->_client->getClient();
